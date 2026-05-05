@@ -6,17 +6,24 @@ A machine learning project that detects spam emails using NLP text preprocessing
 
 ## Why I built this
 
-Spam detection is one of the classic NLP problems, but I wanted to go beyond just training a model and calling it done. I focused on understanding why certain words make an email look like spam, how different feature extraction methods (BoW vs TF-IDF) affect performance, and why a model that scores 99% accuracy might still be missing important spam.
+Spam detection is one of the classic NLP problems, but I wanted to go beyond just training a model and calling it done. I focused on understanding why certain words make an email look like spam, how different feature extraction methods affect performance, and why a model that scores high accuracy might still be missing important spam emails.
+
+---
+
+## Dataset
+
+Used the Apache SpamAssassin Public Corpus — a well-known benchmark dataset containing 6,047 real emails with a 31% spam ratio. It includes easy_ham, hard_ham, and spam categories which made the classification more challenging and realistic than typical toy datasets. The hard_ham category is particularly interesting — these are legitimate emails that use HTML formatting and unusual markup, making them harder to distinguish from spam.
 
 ---
 
 ## What it does
 
-- Cleans and preprocesses email text — removes URLs, special characters, stopwords, and stems words
-- Extracts features using Bag of Words and TF-IDF (with bigrams)
+- Cleans and preprocesses raw email text — removes URLs, phone numbers, special characters, stopwords, and stems words using PorterStemmer
+- Extracts features using Bag of Words and TF-IDF with bigrams
 - Trains and compares three models: Naive Bayes (BoW), Naive Bayes (TF-IDF), and Logistic Regression
-- Visualises top spam/ham indicator words, confusion matrices, and ROC curves
-- Interactive CLI — paste any email and get an instant spam verdict with confidence score
+- Evaluates using Precision, Recall, F1, ROC-AUC, and 5-fold cross validation
+- Visualises top spam and ham indicator words, confusion matrices, and ROC curves
+- Interactive CLI — paste any email and get an instant spam verdict with confidence score and explanation
 
 ---
 
@@ -41,14 +48,14 @@ Raw Email Text
   Naive Bayes / Logistic Regression Classifier
       │
       ▼
-  Spam or Ham prediction + confidence score
+  Spam or Ham + confidence score
 ```
 
 ---
 
 ## Why TF-IDF over Bag of Words
 
-BoW counts raw word frequencies — so common words like "the" or "is" get high scores even though they carry no spam signal. TF-IDF downweights words that appear everywhere and upweights words that are rare but specific to certain emails (like "lottery", "click here", "free offer"). This gives the model much better signal for spam detection.
+BoW counts raw word frequencies — so common words like "the" or "is" get high scores even though they carry no spam signal. TF-IDF downweights words that appear in every email and upweights words that are specific to certain emails like "lottery", "click here", or "free offer". This gives the model much better signal for detecting spam.
 
 ---
 
@@ -56,9 +63,9 @@ BoW counts raw word frequencies — so common words like "the" or "is" get high 
 
 | Model | Feature | Notes |
 |---|---|---|
-| Multinomial Naive Bayes | BoW | Fast baseline, works well with sparse text data |
+| Multinomial Naive Bayes | BoW | Fast baseline, works well with sparse text |
 | Multinomial Naive Bayes | TF-IDF | Better than raw counts for text classification |
-| Logistic Regression | TF-IDF | Best overall — also gives interpretable feature weights |
+| Logistic Regression | TF-IDF | Best overall — gives interpretable feature weights |
 
 ---
 
@@ -97,7 +104,7 @@ spam-email-classifier/
 # Install dependencies
 pip install -r requirements.txt
 
-# Generate dataset (or use real Kaggle dataset — see note below)
+# Generate dataset
 python generate_dataset.py
 
 # Train models
@@ -107,28 +114,23 @@ python train.py
 python predict.py
 ```
 
-**Using the real SpamAssassin dataset from Kaggle:**
-```bash
-kaggle datasets download -d beatoa/spamassassin-public-corpus --unzip -p data/
-```
-
 ---
 
 ## Results
 
 Logistic Regression with TF-IDF performed best across accuracy, F1, and cross-validation scores. The most informative spam words were: `free`, `click`, `win`, `money`, `urgent`, `prize`, `offer`. The most informative ham words were conversational terms like `meeting`, `attached`, `please`, `review`, `team`.
 
-False positives (ham marked as spam) were rare — which matters because missing a legitimate email is usually worse than letting a spam through.
+False positives — legitimate emails flagged as spam — were kept very low, which matters because missing a real email is usually worse than letting a spam through.
 
 ---
 
 ## Things I learned
 
 - Why stemming matters — `winning`, `winner`, `wins` all become `win`, reducing feature sparsity
-- The difference between BoW and TF-IDF and when each works better
-- Why precision matters more than recall in spam filtering — you don't want legitimate emails blocked
-- How to read feature coefficients from Logistic Regression to understand what the model actually learned
-- Why 5-fold cross validation gives a more honest picture of model performance than a single train/test split
+- The difference between BoW and TF-IDF and when each works better for text classification
+- Why precision matters more than recall in spam filtering — you do not want real emails blocked
+- How to read Logistic Regression feature coefficients to understand what the model actually learned
+- Why 5-fold cross validation gives a more honest picture than a single train/test split
 
 ---
 
